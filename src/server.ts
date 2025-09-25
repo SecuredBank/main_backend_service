@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { client } from './config/db';
 import { authRoutes } from './routes/auth.routes';
+import kycRoutes from './routes/kyc.routes';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,8 +28,9 @@ app.use((err: Error, req: Request, res: Response, next: Function) => {
     res.status(500).send('Something broke!');
 });
 
-// Routing
+// API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/kyc', kycRoutes);
 
 // Start server
 const server = app.listen(PORT, () => {

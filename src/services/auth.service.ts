@@ -3,10 +3,7 @@ import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { client } from '../config/db';
 import { RegisterUserDto, LoginUserDto, AuthResponse, RefreshTokenDto } from '../types/auth';
-import { User } from '../../generated/prisma';
-
-// User type definition
-
+import { AuthUser } from '../types/user.types';
 
 // JWT payload type
 type JwtPayload = {
@@ -32,7 +29,7 @@ export class AuthService {
     this.prisma = client as unknown as PrismaClient;
   }
 
-  private generateTokens(user: User): { accessToken: string; refreshToken: string } {
+  private generateTokens(user: AuthUser): { accessToken: string; refreshToken: string } {
     // Create JWT payload
     const accessPayload = {
       userId: user.id,

@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -9,29 +8,43 @@ datasource db {
 }
 
 model User {
-  id              String         @id @default(uuid())
+  id              String   @id @default(uuid())
   fullnames       String
-  email           String         @unique
-  username        String         @unique
+  email           String   @unique
+  username        String   @unique
   password        String
-  isEmailVerified Boolean        @default(false)
-  isKycPassed     Boolean        @default(false)
-  role            String         @default("USER")  // Added role field for authorization
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  
-  RefreshToken    RefreshToken[]
-  KycDocs         KycDocs[]
+  isEmailVerified Boolean  @default(false)
+  isKycPassed     Boolean  @default(false)
+  role            Role     @default(USER) // Added role field for authorization
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  RefreshToken RefreshToken[]
+  KycDocs      KycDocs[]
 }
 
 model KycDocs {
-  id String @id @default(uuid())
-  userId String
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   nationalIdUrl String
-  selfieUrl String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  selfieUrl     String
+  status        Status   @default(NOT_SUBMITTED)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum Status {
+  NOT_SUBMITTED
+  REQUESTED
+  APPROVED
+  REJECTED
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
 }
 
 model RefreshToken {
