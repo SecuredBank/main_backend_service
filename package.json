@@ -5,24 +5,28 @@
   "main": "./src/server.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "build" : "tsc",
+    "start" : "node ./dist/server.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SecuredBank/main_backend_service.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Mugisha Prosper",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/SecuredBank/main_backend_service/issues"
   },
   "homepage": "https://github.com/SecuredBank/main_backend_service#readme",
   "dependencies": {
     "@prisma/client": "^6.16.2",
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1"
   },
   "devDependencies": {

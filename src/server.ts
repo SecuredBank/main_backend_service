@@ -3,7 +3,7 @@ import { type Request, type Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import client from './config/db';
+import { client } from './config/db';
 
 const app = express();
 const PORT = process.env.PORT || 5000;

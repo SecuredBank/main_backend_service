@@ -14,9 +14,23 @@ model User {
   email        String         @unique
   username     String         @unique
   password     String
+  isEmailVerified Boolean @default(false)
+  isKycPassed Boolean @default(false)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
+  
   RefreshToken RefreshToken[]
+  KycDocs KycDocs[]
+}
+
+model KycDocs {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nationalIdUrl String
+  selfieUrl String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model RefreshToken {
