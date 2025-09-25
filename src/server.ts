@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { client } from './config/db';
+import { authRoutes } from './routes/auth.routes';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -25,6 +26,9 @@ app.use((err: Error, req: Request, res: Response, next: Function) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');
 });
+
+// Routing
+app.use('/api/auth', authRoutes);
 
 // Start server
 const server = app.listen(PORT, () => {

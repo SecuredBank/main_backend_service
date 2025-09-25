@@ -20,6 +20,7 @@ export interface AuthResponse {
     fullnames: string;
     isEmailVerified: boolean;
     isKycPassed: boolean;
+    role: string;
   };
 }
 

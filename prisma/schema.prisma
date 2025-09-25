@@ -9,18 +9,19 @@ datasource db {
 }
 
 model User {
-  id           String         @id @default(uuid())
-  fullnames    String
-  email        String         @unique
-  username     String         @unique
-  password     String
-  isEmailVerified Boolean @default(false)
-  isKycPassed Boolean @default(false)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id              String         @id @default(uuid())
+  fullnames       String
+  email           String         @unique
+  username        String         @unique
+  password        String
+  isEmailVerified Boolean        @default(false)
+  isKycPassed     Boolean        @default(false)
+  role            String         @default("USER")  // Added role field for authorization
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
   
-  RefreshToken RefreshToken[]
-  KycDocs KycDocs[]
+  RefreshToken    RefreshToken[]
+  KycDocs         KycDocs[]
 }
 
 model KycDocs {

@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build" : "tsc",
-    "start" : "node ./dist/server.js"
+    "build": "tsc",
+    "start": "node ./dist/server.js"
   },
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
   "homepage": "https://github.com/SecuredBank/main_backend_service#readme",
   "dependencies": {
     "@prisma/client": "^6.16.2",
+    "@types/jsonwebtoken": "^9.0.10",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",

@@ -1,37 +1,70 @@
-import { PrismaClient, User } from '../../generated/prisma';
-import { client } from '../config/db';
+import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
+import { client } from '../config/db';
 import { RegisterUserDto, LoginUserDto, AuthResponse, RefreshTokenDto } from '../types/auth';
+import { User } from '../../generated/prisma';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+// User type definition
+
+
+// JWT payload type
+type JwtPayload = {
+  userId: string;
+  email: string;
+  role: string;
+  type?: string;  // For refresh tokens
+};
+
+const JWT_SECRET = process.env.JWT_SECRET as string || 'your-secret-key';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 const REFRESH_TOKEN_EXPIRY_DAYS = 7;
 
+// Ensure JWT secret is set
+if (!process.env.JWT_SECRET) {
+  console.warn('WARNING: JWT_SECRET is not set. Using default secret key. This is not recommended for production.');
+}
+
 export class AuthService {
   private prisma: PrismaClient;
-
+  
   constructor() {
-    this.prisma = client;
+    this.prisma = client as unknown as PrismaClient;
   }
 
   private generateTokens(user: User): { accessToken: string; refreshToken: string } {
-    const accessToken = jwt.sign(
-      { userId: user.id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
-    );
+    // Create JWT payload
+    const accessPayload = {
+      userId: user.id,
+      email: user.email,
+      role: user.role || 'USER',
+      type: 'access'
+    };
 
+    const refreshPayload = {
+      ...accessPayload,
+      type: 'refresh'
+    };
+
+    // Generate access token
+    const accessToken = jwt.sign(
+      accessPayload as object,
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions
+    );
+    
+    // Generate refresh token with longer expiry
     const refreshToken = jwt.sign(
-      { userId: user.id, tokenVersion: Math.floor(Date.now() / 1000) },
-      JWT_SECRET + user.password,
-      { expiresIn: `${REFRESH_TOKEN_EXPIRY_DAYS}d` }
+      refreshPayload as object,
+      JWT_SECRET,
+      { expiresIn: `${REFRESH_TOKEN_EXPIRY_DAYS}d` } as jwt.SignOptions
     );
 
     return { accessToken, refreshToken };
   }
 
   async register(userData: RegisterUserDto): Promise<AuthResponse> {
+    // Check if user already exists
     const existingUser = await this.prisma.user.findFirst({
       where: {
         OR: [
@@ -76,7 +109,8 @@ export class AuthService {
         username: user.username,
         fullnames: user.fullnames,
         isEmailVerified: user.isEmailVerified,
-        isKycPassed: user.isKycPassed
+        isKycPassed: user.isKycPassed,
+        role: user.role
       }
     };
   }
@@ -115,15 +149,22 @@ export class AuthService {
         username: user.username,
         fullnames: user.fullnames,
         isEmailVerified: user.isEmailVerified,
-        isKycPassed: user.isKycPassed
+        isKycPassed: user.isKycPassed,
+        role: user.role
       }
     };
   }
 
   async refreshToken(refreshTokenData: RefreshTokenDto): Promise<{ accessToken: string }> {
     try {
-      const payload = jwt.verify(refreshTokenData.refreshToken, JWT_SECRET) as any;
+      // Verify the refresh token
+      const payload = jwt.verify(refreshTokenData.refreshToken, JWT_SECRET) as JwtPayload;
       
+      if (payload.type && payload.type !== 'refresh') {
+        throw new Error('Invalid token type');
+      }
+      
+      // Find the token in the database
       const tokenDoc = await this.prisma.refreshToken.findFirst({
         where: {
           token: refreshTokenData.refreshToken,
@@ -133,14 +174,22 @@ export class AuthService {
         include: { user: true }
       });
 
-      if (!tokenDoc) {
-        throw new Error('Invalid refresh token');
+      if (!tokenDoc || !tokenDoc.user) {
+        throw new Error('Invalid or expired refresh token');
       }
 
+      // Generate new access token
+      const accessPayload: JwtPayload = {
+        userId: tokenDoc.user.id,
+        email: tokenDoc.user.email,
+        role: tokenDoc.user.role || 'USER',
+        type: 'access'
+      };
+
       const newAccessToken = jwt.sign(
-        { userId: tokenDoc.userId, email: tokenDoc.user.email },
+        accessPayload as object,
         JWT_SECRET,
-        { expiresIn: JWT_EXPIRES_IN }
+        { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions
       );
 
       return { accessToken: newAccessToken };
